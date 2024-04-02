@@ -1,0 +1,348 @@
+import java.util.*;
+
+abstract class Player {
+protected int health;
+protected int defense;
+protected int attackDamage;
+protected int x;
+protected int y;
+
+public Player(int health, int defense, int attackDamage, int x, int y) {
+this.health = health;
+this.defense = defense;
+this.attackDamage = attackDamage;
+this.x = x;
+this.y = y;
+}
+
+public void attack(Player target) {
+int damageDealt = Math.max(0, attackDamage - target.defense);
+target.health -= damageDealt;
+System.out.println("Player dealt " + damageDealt + " damage to the enemy!");
+}
+
+public void move(int newX, int newY) {
+this.x = newX;
+this.y = newY;
+}
+
+public boolean isAlive() {
+return health > 0;
+}
+}
+
+class Swordsman extends Player {
+public Swordsman(int x, int y) {
+super(15, 6, 9, x, y);
+}
+}
+
+class Spearman extends Player {
+public Spearman(int x, int y) {
+super(12, 8, 8, x, y);
+}
+}
+
+class Axeman extends Player {
+public Axeman(int x, int y) {
+super(18, 4, 10, x, y);
+}
+}
+
+class Longbowman extends Player {
+public Longbowman(int x, int y) {
+super(10, 3, 12, x, y);
+}
+}
+
+class Shortbowman extends Player {
+public Shortbowman(int x, int y) {
+super(8, 2, 10, x, y);
+}
+}
+
+class Crossbowman extends Player {
+public Crossbowman(int x, int y) {
+super(12, 5, 14, x, y);
+}
+}
+
+class Knight extends Player {
+public Knight(int x, int y) {
+super(20, 10, 15, x, y);
+}
+}
+
+class Hussar extends Player {
+public Hussar(int x, int y) {
+super(16, 6, 12, x, y);
+}
+}
+
+class HorseArcher extends Player {
+public HorseArcher(int x, int y) {
+super(14, 4, 13, x, y);
+}
+}
+
+class MedievalBattleGame {
+private static final int FIELD_SIZE = 15;
+private static final char NORMAL_TILE = '*';
+private static final char SWAMP_TILE = '#';
+private static final char HILL_TILE = '@';
+private static final char TREE_TILE = '!';
+
+private static char[][] battlefield = new char[FIELD_SIZE][FIELD_SIZE];
+private static Random random = new Random();
+
+public static void main(String[] args) {
+Scanner scanner = new Scanner(System.in);
+
+List<Player> playerUnits = new ArrayList<>();
+    List<Player> botUnits = new ArrayList<>();
+
+        System.out.println("Выберите войска для покупки:");
+        System.out.println("1. Мечники (стоимость: 25 золота)");
+        System.out.println("2. Копьеносцы (стоимость: 25 золота)");
+        System.out.println("3. Топорщики (стоимость: 25 золота)");
+        System.out.println("4. Лучники с длинным луком (стоимость: 25 золота)");
+        System.out.println("5. Лучники с коротким луком (стоимость: 25 золота)");
+        System.out.println("6. Арбалетчики (стоимость: 25 золота)");
+        System.out.println("7. Рыцари (стоимость: 25 золота)");
+        System.out.println("8. Кирасиры (стоимость: 25 золота)");
+        System.out.println("9. Конные лучники (стоимость: 25 золота)");
+
+        int balance = 100;
+        while (balance >= 25) {
+        System.out.println("Ваш баланс: " + balance + " золота. Введите номер выбранного войска (или 0 для завершения покупок):");
+        int choice = scanner.nextInt();
+        if (choice == 0) {
+        break;
+        } else if (choice >= 1 && choice <= 9) {
+        balance -= 25;
+        switch (choice) {
+        case 1:
+        playerUnits.add(new Swordsman(random.nextInt(2), random.nextInt(FIELD_SIZE)));
+        break;
+        case 2:
+        playerUnits.add(new Spearman(random.nextInt(2), random.nextInt(FIELD_SIZE)));
+        break;
+        case 3:
+        playerUnits.add(new Axeman(random.nextInt(2), random.nextInt(FIELD_SIZE)));
+        break;
+        case 4:
+        playerUnits.add(new Longbowman(random.nextInt(2), random.nextInt(FIELD_SIZE)));
+        break;
+        case 5:
+        playerUnits.add(new Shortbowman(random.nextInt(2), random.nextInt(FIELD_SIZE)));
+        break;
+        case 6:
+        playerUnits.add(new Crossbowman(random.nextInt(2), random.nextInt(FIELD_SIZE)));
+        break;
+        case 7:
+        playerUnits.add(new Knight(random.nextInt(2), random.nextInt(FIELD_SIZE)));
+        break;
+        case 8:
+        playerUnits.add(new Hussar(random.nextInt(2), random.nextInt(FIELD_SIZE)));
+        break;
+        case 9:
+        playerUnits.add(new HorseArcher(random.nextInt(2), random.nextInt(FIELD_SIZE)));
+        break;
+        }
+        } else {
+        System.out.println("Некорректный ввод. Повторите попытку.");
+        }
+        }
+
+        // Генерация юнитов бота
+        for (int i = 0; i < 5; i++) {
+        botUnits.add(new Swordsman(random.nextInt(FIELD_SIZE - 1) + FIELD_SIZE / 2 + 1, random.nextInt(FIELD_SIZE)));
+        botUnits.add(new Longbowman(random.nextInt(FIELD_SIZE - 1) + FIELD_SIZE / 2 + 1, random.nextInt(FIELD_SIZE)));
+        botUnits.add(new Knight(random.nextInt(FIELD_SIZE - 1) + FIELD_SIZE / 2 + 1, random.nextInt(FIELD_SIZE)));
+        }
+
+        initializeBattlefield();
+        updateBattlefield(null, playerUnits, botUnits);
+        printBattlefield(null, playerUnits, botUnits);
+
+        while (!playerUnits.isEmpty() && !botUnits.isEmpty()) {
+        for (Player unit : playerUnits) {
+        if (!unit.isAlive()) continue;
+        System.out.println("Ход игрока. Выберите действие для юнита " + unit.getClass().getSimpleName() + " (x= " + unit.x + ", y = " + unit.y + "):");
+        System.out.println("1. Атаковать");
+        System.out.println("2. Переместиться");
+
+        int action = scanner.nextInt();
+        if (action == 1) {
+        attackRandomPlayer(unit, botUnits);
+        if (botUnits.isEmpty()) {
+        System.out.println("Победа! Все вражеские юниты уничтожены.");
+        return;
+        }
+        } else if (action == 2) {
+        System.out.println("Введите новые координаты (x, y):");
+        int newX = scanner.nextInt();
+        int newY = scanner.nextInt();
+        unit.move(newX, newY);
+        } else {
+        System.out.println("Некорректный ввод. Пропуск хода.");
+        }
+
+        updateBattlefield(unit, playerUnits, botUnits);
+        printBattlefield(unit, playerUnits, botUnits);
+        }
+
+        for (Player unit : botUnits) {
+        if (!unit.isAlive()) continue;
+        if (canAttack(unit, playerUnits)) {
+        attackRandomPlayer(unit, playerUnits);
+        if (playerUnits.isEmpty()) {
+        System.out.println("Поражение! Все ваши юниты уничтожены.");
+        return;
+        }
+        } else {
+        unit.move(Math.min(unit.x + 1, FIELD_SIZE - 1), unit.y);
+        }
+        }
+
+        updateBattlefield(null, playerUnits, botUnits);
+        printBattlefield(null, playerUnits, botUnits);
+        }
+        }
+
+        private static void initializeBattlefield() {
+        for (int i = 0; i < FIELD_SIZE; i++) {
+        for (int j = 0; j < FIELD_SIZE; j++) {
+        int rand = random.nextInt(10);
+        if (rand < 2) {
+        battlefield[i][j] = SWAMP_TILE;
+        } else if (rand < 4) {
+        battlefield[i][j] = HILL_TILE;
+        } else if (rand < 6) {
+        battlefield[i][j] = TREE_TILE;
+        } else {
+        battlefield[i][j] = NORMAL_TILE;
+        }
+        }
+        }
+        }
+
+        private static void updateBattlefield(Player selectedPlayer, List<Player> playerUnits, List<Player> botUnits) {
+            char botUnitSymbol = 'a'; // Буква для обозначения юнита противника
+
+            for (int i = 0; i < FIELD_SIZE; i++) {
+            for (int j = 0; j < FIELD_SIZE; j++) {
+            battlefield[i][j] = getRandomTerrain();
+            }
+            }
+
+            for (Player unit : playerUnits) {
+            char symbol = getSymbolForPlayerUnit(unit);
+            if (unit.x >= 0 && unit.x < FIELD_SIZE && unit.y >= 0 && unit.y < FIELD_SIZE) {
+            battlefield[unit.x][unit.y] = symbol;
+            }
+            }
+
+            for (Player unit : botUnits) {
+            char symbol = getSymbolForBotUnit(unit, botUnitSymbol++);
+            if (unit.x >= 0 && unit.x < FIELD_SIZE && unit.y >= 0 && unit.y < FIELD_SIZE) {
+            battlefield[unit.x][unit.y] = symbol;
+            if (botUnitSymbol > 'j') {
+            botUnitSymbol = 'a';
+            }
+            }
+            }
+
+            }
+
+            private static void printBattlefield(Player selectedPlayer, List<Player> playerUnits, List<Player> botUnits) {
+                System.out.println("=== Поле боя ===");
+                for (int i = 0; i < FIELD_SIZE; i++) {
+                for (int j = 0; j < FIELD_SIZE; j++) {
+                System.out.print(battlefield[i][j] + " ");
+                }
+                System.out.println();
+                }
+                System.out.println("================");
+                System.out.println();
+                }
+
+                private static char getSymbolForPlayerUnit(Player unit) {
+                if (unit instanceof Swordsman) {
+                return '1';
+                } else if (unit instanceof Spearman) {
+                return '2';
+                } else if (unit instanceof Axeman) {
+                return '3';
+                } else if (unit instanceof Longbowman) {
+                return '4';
+                } else if (unit instanceof Shortbowman) {
+                return '5';
+                } else if (unit instanceof Crossbowman) {
+                return '6';
+                } else if (unit instanceof Knight) {
+                return '7';
+                } else if (unit instanceof Hussar) {
+                return '8';
+                } else if (unit instanceof HorseArcher) {
+                return '9';
+                } else {
+                return '?';
+                }
+                }
+
+                private static char getSymbolForBotUnit(Player unit, char symbol) {
+                if (unit instanceof Swordsman) {
+                return 'a';
+                } else if (unit instanceof Spearman) {
+                return 'b';
+                } else if (unit instanceof Axeman) {
+                return 'c';
+                } else if (unit instanceof Longbowman) {
+                return 'd';
+                } else if (unit instanceof Shortbowman) {
+                return 'e';
+                } else if (unit instanceof Crossbowman) {
+                return 'f';
+                } else if (unit instanceof Knight) {
+                return 'g';
+                } else if (unit instanceof Hussar) {
+                return 'h';
+                } else if (unit instanceof HorseArcher) {
+                return 'j';
+                } else {
+                return '?';
+                }
+                }
+
+                private static char getRandomTerrain() {
+                int rand = random.nextInt(10);
+                if (rand < 2) {
+                return SWAMP_TILE;
+                } else if (rand < 4) {
+                return HILL_TILE;
+                } else if (rand < 6) {
+                return TREE_TILE;
+                } else {
+                return NORMAL_TILE;
+                }
+                }
+
+                private static boolean canAttack(Player attacker, List<Player> targets) {
+                    for (Player target : targets) {
+                    int distance = Math.abs(attacker.x - target.x) + Math.abs(attacker.y - target.y);
+                    if (distance <= 1) {
+                    return true; // Есть возможность атаки
+                    }
+                    }
+                    return false;
+                    }
+
+                    private static void attackRandomPlayer(Player attacker, List<Player> targets) {
+                        Player target = targets.get(random.nextInt(targets.size()));
+                        attacker.attack(target);
+                        if (!target.isAlive()) {
+                        targets.remove(target);
+                        }
+                        }
+                        }
